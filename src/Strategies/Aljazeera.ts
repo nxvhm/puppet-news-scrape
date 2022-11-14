@@ -1,7 +1,7 @@
 import CrawlingStrategy from "./CrawlingStrategy";
 
 class Aljazeera extends CrawlingStrategy {
-    public url = 'https://balkaninsight.com/';
+    public url = 'https://www.aljazeera.com';
 
     public pagesToCrawl = [
         '/topics/regions/middleeast.html',
@@ -18,6 +18,29 @@ class Aljazeera extends CrawlingStrategy {
         category: '.btSubTitle',
         text: '.btArticleBody',
     }
+
+    public filterLinks(links: string[]): string[] {
+        return links.filter(link => {
+
+            if (link[0] == '/') {
+                link = this.getUrl() + link;
+
+            }
+
+            if (!this.isValidUrl(link)) {
+                return false;
+            }
+
+            return link.split('/')
+                .filter(part => part.length > 0)
+                .length >= 7            
+        }).map(link => {
+            return link[0] == '/'  
+                ? this.getUrl()+link 
+                : link;
+        })
+    }
+
 }
 
 export default Aljazeera
