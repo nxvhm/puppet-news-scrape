@@ -1,36 +1,64 @@
-import puppeteer from 'puppeteer';
+import CrawlingStrategy from "./Strategies/CrawlingStrategy";
+import { Page } from "puppeteer";
+
+export default class Crawler { 
+
+    strategy:CrawlingStrategy;
+    puppet:Page;
+
+    constructor(puppet: Page) {
+        this.puppet = puppet;
+    }
+
+    public setStrategy(strategy: CrawlingStrategy) {
+        this.strategy = strategy;
+    }
+
+    /**
+     * Open each of the pages/urls specified in a given strategy
+     * and get all links from them
+     */
+    public async getLinksToCrawl(): Promise<string[]> {
+        let links: string[] = [];
+
+        for (const url of this.strategy.getPagesToCrawl()) {
+            
+            console.log(`Fetch links from ${url}`);
+            
+            // Open URL
+            await this.puppet.goto(url, {
+                waitUntil: 'networkidle2'
+            });
+            
+            // Get me the <a> tags
+            const anchors = await this.puppet.$$('a[href]');
 
 
-let boostrap = async () => {
-  try {
-      const browser = await puppeteer.launch();
-      const page = await browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 5.1; rv:5.0) Gecko/20100101 Firefox/5.0')
-      const URL = "https://balkaninsight.com/2022/11/03/north-macedonia-detains-rightist-activist-over-school-bomb-threats/";
+            // loop through the anchors and get the href attribute
+            for (let i = 0; i < anchors.length; i++) {
+                const linkHandle = anchors[i];
 
-      await page.setViewport({
-        width: 1620, height: 920,
-        deviceScaleFactor: 1
-      });
+                const href = await this.puppet.evaluate(
+                    linkElem => linkElem.getAttribute('href'), 
+                    linkHandle
+                );
 
-      await page.goto(URL, {
-        waitUntil: 'networkidle2',
-      });
-      // h1 span.headline
-      const element = await page.waitForSelector('h1 span.headline');
-      if (element) {
-        const value = await element.evaluate(el => el.textContent);
-        console.log('H1 is:', value);
-        process.exit(1)
-      }
+                if (href) {
+                    links.push(href);
+                }
+                
+            }
 
-  } catch (e) {
-    console.log("ERROR DURING BOOTSTRAP:", e);
-  }
+            // Wait some time before doing the next request
+            await this.sleep(2500);
+        }
+        console.log('Links fetched before filtering:', links.length);
+
+        return [...new Set(this.strategy.filterLinks(links))];
+    }
+
+    public async sleep(ms:number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
 }
-
-let main = async () => {
-  await boostrap();
-}
-
-main()

@@ -1,5 +1,6 @@
 import Strategies from './Strategies'
 import puppet from './puppet'
+import Crawler from './Crawler'
 
 
 let websites: string[] = [];
@@ -14,14 +15,21 @@ type StrategyKey = keyof typeof Strategies;
 
 const main = async  () => {
 
-    let crawler = await puppet();
+    const crawler = new Crawler(
+        await puppet()
+    );
 
     for (const site of websites) {
+
         if (!Strategies.hasOwnProperty(site)) continue;
+
         console.log("Scraping news for:", site);
-        let strategy = new Strategies[site as StrategyKey];
-        let links2Crawl = await strategy.getLinks2Crawl(crawler);
-        console.log(links2Crawl.length, " links scraped");   
+
+        crawler.setStrategy(
+            new Strategies[site as StrategyKey]
+        );
+        let links2Crawl = await crawler.getLinksToCrawl();
+        console.log(links2Crawl.length, " links scraped and filtered");
     }
 
     process.exit();

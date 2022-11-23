@@ -4,8 +4,8 @@ class Balkaninsight extends CrawlingStrategy {
     public url = 'https://balkaninsight.com';
 
     public pagesToCrawl = [
-        '/albania-home',
         '/bulgaria-home',
+        '/albania-home',
         '/romania-home',
         '/croatia-home',
         '/greece-home',
@@ -37,7 +37,7 @@ class Balkaninsight extends CrawlingStrategy {
 
             return link.split('/')
                 .filter(part => part.length > 0)
-                .length >= 7            
+                .length >= 6            
         })
     }
 
