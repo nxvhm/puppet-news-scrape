@@ -1,9 +1,18 @@
+type ArticleDataSelectors = {
+    title: string;
+    description: string;
+    date: string;
+    author: string;
+    category: string;
+}
+
 abstract class CrawlingStrategy {
 
     abstract url: string;
     abstract pagesToCrawl: string[];
     abstract filterLinks(link: string[]): string[];
-
+    abstract contentSelectors: ArticleDataSelectors;
+    
     getUrl(): string {
         return this.url;
     }

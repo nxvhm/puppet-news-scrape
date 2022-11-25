@@ -30,6 +30,12 @@ const main = async  () => {
         );
         let links2Crawl = await crawler.getLinksToCrawl();
         console.log(links2Crawl.length, " links scraped and filtered");
+
+        for (const link of links2Crawl) {
+            console.log(`Scrape ${link}`);
+            let data = await crawler.scrapeArticle(link);
+            console.log(data);
+        }
     }
 
     process.exit();

@@ -20,7 +20,6 @@ class Balkaninsight extends CrawlingStrategy {
         date: 'span.btArticleDate',
         author: 'a.author',
         category: '.btSubTitle',
-        text: '.btArticleBody',
     }
 
     public filterLinks(links: string[]): string[] {
@@ -32,6 +31,10 @@ class Balkaninsight extends CrawlingStrategy {
             }
 
             if (!this.isValidUrl(link)) {
+                return false;
+            }
+
+            if (link.includes('/category')) {
                 return false;
             }
 

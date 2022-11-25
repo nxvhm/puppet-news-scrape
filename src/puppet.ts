@@ -6,7 +6,7 @@ export default async () => {
     
     puppeteer.use(StealthPlugin())
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: true,
         executablePath: executablePath(),
     });
     const page = await browser.newPage();

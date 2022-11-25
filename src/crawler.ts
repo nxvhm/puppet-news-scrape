@@ -57,6 +57,33 @@ export default class Crawler {
         return [...new Set(this.strategy.filterLinks(links))];
     }
 
+    public async scrapeArticle(url:string): Promise<object> {
+        let data = {};
+        type selectorKey = keyof typeof this.strategy.contentSelectors;
+
+        for (const field of Object.keys(this.strategy.contentSelectors)) {
+            let selector = this.strategy.contentSelectors[field as selectorKey];
+
+            await this.puppet.goto(url, {
+                waitUntil: 'networkidle2'
+            });
+
+            let content = await this.puppet.evaluate(selector => {
+                const el = document.querySelector(selector);
+                return el && el.textContent ? el.textContent : null;
+            }, selector);
+            
+            if (!content) continue;
+
+            data = Object.assign(data, {
+                [field]: content
+            });
+        }
+
+        return data;
+    }
+
+
     public async sleep(ms:number) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
