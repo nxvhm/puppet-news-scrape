@@ -1,6 +1,7 @@
 import Strategies from './Strategies'
 import puppet from './puppet'
 import Crawler from './Crawler'
+import {DB} from './db/DataSource'
 
 
 let websites: string[] = [];
@@ -14,7 +15,7 @@ process.argv.forEach((arg, index) => {
 type StrategyKey = keyof typeof Strategies;
 
 const main = async  () => {
-
+    await DB.initialize();
     const crawler = new Crawler(
         await puppet()
     );
