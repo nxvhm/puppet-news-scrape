@@ -1,17 +1,18 @@
 import CrawlingStrategy from "./CrawlingStrategy";
 
 class Balkaninsight extends CrawlingStrategy {
-    public url = 'https://balkaninsight.com';
 
+    public url = 'https://balkaninsight.com';
+    public name = 'Balkan Insight';
     public pagesToCrawl = [
         '/bulgaria-home',
-        '/albania-home',
-        '/romania-home',
-        '/croatia-home',
-        '/greece-home',
-        '/kosovo-home',
-        '/macedonia-home',
-        '/turkey-home',
+        // '/albania-home',
+        // '/romania-home',
+        // '/croatia-home',
+        // '/greece-home',
+        // '/kosovo-home',
+        // '/macedonia-home',
+        // '/turkey-home',
     ];
 
     public contentSelectors = {
@@ -40,7 +41,7 @@ class Balkaninsight extends CrawlingStrategy {
 
             return link.split('/')
                 .filter(part => part.length > 0)
-                .length >= 6            
+                .length >= 6
         })
     }
 

@@ -1,4 +1,4 @@
-type ArticleDataSelectors = {
+export interface ArticleData {
     title: string;
     description: string;
     date: string;
@@ -8,11 +8,33 @@ type ArticleDataSelectors = {
 
 abstract class CrawlingStrategy {
 
+    /**
+     * The name of the website as is used in databasr
+     */
+    abstract name: string;
+
+    /**
+     * The base url of the website
+     */
     abstract url: string;
+
+    /**
+     * Array of page urls to be crawled
+     */
     abstract pagesToCrawl: string[];
+
+    /**
+     * Declare function to filter out the invalid links that are scraped
+     * on the initial pages crawling
+     * @param link
+     */
     abstract filterLinks(link: string[]): string[];
-    abstract contentSelectors: ArticleDataSelectors;
-    
+
+    /**
+     * Object with all the content selectors required to scrape the article data
+     */
+    abstract contentSelectors: ArticleData;
+
     getUrl(): string {
         return this.url;
     }
@@ -32,7 +54,7 @@ abstract class CrawlingStrategy {
         }
         return url.protocol === "http:" || url.protocol === "https:";
     }
-    
+
 }
 
 export default CrawlingStrategy

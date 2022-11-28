@@ -1,7 +1,7 @@
-import CrawlingStrategy from "./Strategies/CrawlingStrategy";
+import CrawlingStrategy, { ArticleData } from "./Strategies/CrawlingStrategy";
 import { Page } from "puppeteer";
 
-export default class Crawler { 
+export default class Crawler {
 
     strategy:CrawlingStrategy;
     puppet:Page;
@@ -22,14 +22,14 @@ export default class Crawler {
         let links: string[] = [];
 
         for (const url of this.strategy.getPagesToCrawl()) {
-            
+
             console.log(`Fetch links from ${url}`);
-            
+
             // Open URL
             await this.puppet.goto(url, {
                 waitUntil: 'networkidle2'
             });
-            
+
             // Get me the <a> tags
             const anchors = await this.puppet.$$('a[href]');
 
@@ -39,14 +39,14 @@ export default class Crawler {
                 const linkHandle = anchors[i];
 
                 const href = await this.puppet.evaluate(
-                    linkElem => linkElem.getAttribute('href'), 
+                    linkElem => linkElem.getAttribute('href'),
                     linkHandle
                 );
 
                 if (href) {
                     links.push(href);
                 }
-                
+
             }
 
             // Wait some time before doing the next request
@@ -57,8 +57,16 @@ export default class Crawler {
         return [...new Set(this.strategy.filterLinks(links))];
     }
 
-    public async scrapeArticle(url:string): Promise<object> {
-        let data = {};
+    public async scrapeArticle(url:string): Promise<ArticleData> {
+
+        let data: ArticleData = {
+          title: '',
+          description: '',
+          date: '',
+          author: '',
+          category: ''
+        };
+
         type selectorKey = keyof typeof this.strategy.contentSelectors;
 
         for (const field of Object.keys(this.strategy.contentSelectors)) {
@@ -72,7 +80,7 @@ export default class Crawler {
                 const el = document.querySelector(selector);
                 return el && el.textContent ? el.textContent : null;
             }, selector);
-            
+
             if (!content) continue;
 
             data = Object.assign(data, {

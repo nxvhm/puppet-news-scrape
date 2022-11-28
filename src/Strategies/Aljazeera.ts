@@ -2,7 +2,7 @@ import CrawlingStrategy from "./CrawlingStrategy";
 
 class Aljazeera extends CrawlingStrategy {
     public url = 'https://www.aljazeera.com';
-
+    public name = 'Aljazeera News';
     public pagesToCrawl = [
         '/topics/regions/middleeast.html',
         '/topics/regions/africa.html',
@@ -33,10 +33,10 @@ class Aljazeera extends CrawlingStrategy {
 
             return link.split('/')
                 .filter(part => part.length > 0)
-                .length >= 7            
+                .length >= 7
         }).map(link => {
-            return link[0] == '/'  
-                ? this.getUrl()+link 
+            return link[0] == '/'
+                ? this.getUrl()+link
                 : link;
         })
     }
