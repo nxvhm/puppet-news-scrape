@@ -6,13 +6,13 @@ class Balkaninsight extends CrawlingStrategy {
     public name = 'Balkan Insight';
     public pagesToCrawl = [
         '/bulgaria-home',
-        // '/albania-home',
-        // '/romania-home',
-        // '/croatia-home',
-        // '/greece-home',
-        // '/kosovo-home',
-        // '/macedonia-home',
-        // '/turkey-home',
+        '/albania-home',
+        '/romania-home',
+        '/croatia-home',
+        '/greece-home',
+        '/kosovo-home',
+        '/macedonia-home',
+        '/turkey-home',
     ];
 
     public contentSelectors = {
