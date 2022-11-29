@@ -1,6 +1,6 @@
 import Strategies from './Strategies'
 import puppet from './puppet'
-import Crawler from './Crawler'
+import Crawler from './crawler'
 import {DB} from './db/DataSource'
 import Article from './Models/Article';
 import Site from './Models/Site';
