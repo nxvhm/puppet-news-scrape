@@ -55,6 +55,11 @@ abstract class CrawlingStrategy {
         return url.protocol === "http:" || url.protocol === "https:";
     }
 
+    public getFullUrl(link: string):string {
+        return link.includes('https://') || link.includes('http://')
+            ? link : this.getUrl() + link;
+    }
+
 }
 
 export default CrawlingStrategy
