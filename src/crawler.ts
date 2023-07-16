@@ -72,14 +72,21 @@ export default class Crawler {
         for (const field of Object.keys(this.strategy.contentSelectors)) {
             let selector = this.strategy.contentSelectors[field as selectorKey];
 
+            if (!selector.length) {
+                continue;
+            }
+
             await this.puppet.goto(url, {
                 waitUntil: 'networkidle2'
             });
 
-            let content = await this.puppet.evaluate(selector => {
-                const el = document.querySelector(selector);
-                return el && el.textContent ? el.textContent : null;
-            }, selector);
+            const elementHandle = await this.puppet.$(selector);
+
+            if (!elementHandle) {
+                continue;
+            }
+
+            const content = await elementHandle.evaluate(node => node.textContent);
 
             if (!content) continue;
 

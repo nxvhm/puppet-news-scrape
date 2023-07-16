@@ -36,21 +36,6 @@ export default class Article extends BaseEntity {
     }
 
     static formatDateString(dateString:string):string{
-      
-      dateString = dateString.replace(/(?:\r\n|\r|\n)/g, '')
-        .trim()
-        .replace(/ +/, " ");
-
-      if (dateString.includes("Published ")) {
-        dateString = dateString.replace("Published ", "");
-      }
-
-      if (dateString.includes("Updated ")) {
-        dateString = dateString.replace("Updated ", "");
-      }
-
-      console.log('dateString: ', dateString.trim());
-
       let date = new Date(dateString.trim());
 
       return [

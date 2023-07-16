@@ -46,6 +46,32 @@ class CNN extends CrawlingStrategy {
         })
     }
 
+    public sanitizeDate(dateString: string): string {
+        dateString = dateString.replace(/(?:\r\n|\r|\n)/g, '')
+        .trim()
+        .replace(/ +/, " ")
+        .trim();
+
+      if (dateString.includes("Published ")) {
+        dateString = dateString.replace("Published ", "");
+      }
+
+      if (dateString.includes("Updated ")) {
+        dateString = dateString.replace("Updated ", "");
+      }
+
+      const [, day, year] = dateString.trim().split(", ") 
+
+      return [day, year].join(" ");
+    }
+
+    public sanitizeTitle(title: string): string {
+        return title.replace(/(?:\r\n|\r|\n)/g, '')
+        .trim()
+        .replace(/ +/, " ")
+        .trim();
+    }
+
 }
 
 export default CNN
