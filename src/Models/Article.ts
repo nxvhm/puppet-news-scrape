@@ -1,4 +1,6 @@
 import { Entity, BaseEntity, Column, PrimaryGeneratedColumn } from "typeorm"
+import * as https from "https"
+import * as fs from "fs"
 
 @Entity("news")
 export default class Article extends BaseEntity {
@@ -35,14 +37,26 @@ export default class Article extends BaseEntity {
         .getCount()
     }
 
-    static formatDateString(dateString:string):string{
-      let date = new Date(dateString.trim());
+    static async saveImageFromUrl(url: string, articleId: number) {
+      const imgName = String(articleId)+'.jpg',
+            path = process.env.IMAGE_PATH,
+            fullPath = path+'/'+imgName,
+            file = fs.createWriteStream(fullPath);
 
-      return [
-        date.getFullYear(),
-        date.getMonth()+1,
-        date.getDate()
-      ].join('-');
+      https.get(url, response => {
+        response.pipe(file);
+      
+        file.on('finish', () => {
+          file.close();
+          console.log(`Image downloaded as ${imgName}`);
+        });
+      }).on('error', err => {
+        console.error(`Error downloading image: ${err.message}`);
+      });
+
+
+
+
     }
 
 }
