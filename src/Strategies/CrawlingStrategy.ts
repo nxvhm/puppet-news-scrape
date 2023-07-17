@@ -1,9 +1,5 @@
-export interface ArticleData {
-    title: string;
-    description: string;
-    date: string;
-    author: string;
-    category: string;
+export interface ContentSelectors {
+    [key:string]: string
 }
 
 abstract class CrawlingStrategy {
@@ -33,7 +29,9 @@ abstract class CrawlingStrategy {
     /**
      * Object with all the content selectors required to scrape the article data
      */
-    abstract contentSelectors: ArticleData;
+    abstract contentSelectors: ContentSelectors;
+
+    public onlyFirst: string[];
 
     getUrl(): string {
         return this.url;
@@ -59,7 +57,6 @@ abstract class CrawlingStrategy {
         return link.includes('https://') || link.includes('http://')
             ? link : this.getUrl() + link;
     }
-
 }
 
 export default CrawlingStrategy

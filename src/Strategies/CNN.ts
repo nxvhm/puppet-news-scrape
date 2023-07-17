@@ -16,9 +16,16 @@ class CNN extends CrawlingStrategy {
         description: '.article__content p.paragraph',
         date: '.timestamp',
         author: '.byline__names',
-        category: '',
-        text: '.article__content',
+        text: '.article__content-container p',
+        image: 'img.image__dam-img'
     }
+    /**
+     * Specifies for whic content selectors only the first node element
+     * should be considered for the result
+     */
+    public onlyFirst = [
+        'title', 'description', 'date', 'author', 'image'
+    ];
 
     public filterLinks(links: string[]): string[] {
         return links.filter(link => {
@@ -63,13 +70,6 @@ class CNN extends CrawlingStrategy {
       const [, day, year] = dateString.trim().split(", ") 
 
       return [day, year].join(" ");
-    }
-
-    public sanitizeTitle(title: string): string {
-        return title.replace(/(?:\r\n|\r|\n)/g, '')
-        .trim()
-        .replace(/ +/, " ")
-        .trim();
     }
 
 }

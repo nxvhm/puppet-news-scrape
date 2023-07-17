@@ -1,4 +1,4 @@
-import CrawlingStrategy, { ArticleData } from "./Strategies/CrawlingStrategy";
+import CrawlingStrategy, { ContentSelectors } from "./Strategies/CrawlingStrategy";
 import { Page } from "puppeteer";
 
 export default class Crawler {
@@ -57,22 +57,16 @@ export default class Crawler {
         return [...new Set(this.strategy.filterLinks(links))];
     }
 
-    public async scrapeArticle(url:string): Promise<ArticleData> {
+    public async scrapeArticle(url:string): Promise<ContentSelectors> {
 
-        let data: ArticleData = {
-          title: '',
-          description: '',
-          date: '',
-          author: '',
-          category: ''
-        };
+        let data: ContentSelectors = {};
 
         type selectorKey = keyof typeof this.strategy.contentSelectors;
 
-        for (const field of Object.keys(this.strategy.contentSelectors)) {
-            let selector = this.strategy.contentSelectors[field as selectorKey];
+        for (const contentType of Object.keys(this.strategy.contentSelectors)) {
+            let selector = this.strategy.contentSelectors[contentType as selectorKey];
 
-            if (!selector.length) {
+            if (!selector || !selector.length) {
                 continue;
             }
 
@@ -80,19 +74,27 @@ export default class Crawler {
                 waitUntil: 'networkidle2'
             });
 
-            const elementHandle = await this.puppet.$(selector);
-
+            const onlyFirst = this.strategy.onlyFirst.includes(selector);
+            const elementHandle = await this.puppet.$$(selector);
             if (!elementHandle) {
                 continue;
             }
 
-            const content = await elementHandle.evaluate(node => node.textContent);
+            let content = '';
+            for (const el of elementHandle) {
+
+                content += contentType != 'image' 
+                    ? await el.evaluate(node => node.textContent)
+                    : await el.evaluate(node => node.getAttribute('src'));;
+
+                if (onlyFirst) {
+                    break;
+                }
+            }
 
             if (!content) continue;
 
-            data = Object.assign(data, {
-                [field]: content
-            });
+            data[contentType] = content;
         }
 
         return data;

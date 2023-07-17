@@ -4,6 +4,7 @@ import Crawler from './crawler'
 import {DB} from './db/DataSource'
 import Article from './Models/Article';
 import Site from './Models/Site';
+import Sanitizer from './lib/Sanitizer'
 
 let websites: string[] = [];
 process.argv.forEach((arg, index) => {
@@ -27,7 +28,6 @@ const main = async  () => {
         console.log("Scraping news for:", site);
         const strategy = new Strategies[site as StrategyKey];
         crawler.setStrategy(strategy);
-
 
         const siteModel = await Site.findOneBy({
           name: crawler.strategy.name
@@ -54,13 +54,9 @@ const main = async  () => {
             console.log(`Scrape ${fullLinkUrl}`);
 
             let data = await crawler.scrapeArticle(fullLinkUrl);
-            
+
             if (typeof (crawler.strategy as any).sanitizeDate === 'function') {
               data.date = (crawler.strategy as any).sanitizeDate(data.date);
-            }
-
-            if (typeof (crawler.strategy as any).sanitizeTitle === 'function') {
-              data.title = (crawler.strategy as any).sanitizeTitle(data.title);
             }
 
             if (!data.date || isNaN(Date.parse(data.date))) {
@@ -73,15 +69,25 @@ const main = async  () => {
               continue;
             }
 
+
             let article = new Article();
             article.url = fullLinkUrl;
-            article.title = data.title;
-            article.date = Article.formatDateString(data.date);
+            article.title = Sanitizer.sanitizeTitle(data.title);
+            article.date  = Sanitizer.formatDateString(data.date);
             article.category = data.category;
-            article.site_id = siteModel.site_id;
+            article.site_id  = siteModel.site_id;
+
+            if (data.text) {
+              article.text =  Sanitizer.sanitizeText(data.text);
+            }
+
             await article.save();
 
-            console.log(`Article saved: ${article.title} [${article.date}]`);
+            if (data.image && data.image.length) {
+              Article.saveImageFromUrl(data.image, article.id);
+            }
+
+            console.log(`Article saved: ${article.title} [${article.date}] ID: ${article.id}`);
 
         }
     }
