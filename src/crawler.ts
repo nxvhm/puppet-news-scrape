@@ -74,7 +74,7 @@ export default class Crawler {
                 waitUntil: 'networkidle2'
             });
 
-            const onlyFirst = this.strategy.onlyFirst.includes(selector);
+            const onlyFirst = this.strategy.onlyFirst.includes(contentType);
             const elementHandle = await this.puppet.$$(selector);
             if (!elementHandle) {
                 continue;
