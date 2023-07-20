@@ -9,8 +9,9 @@ import Sanitizer from './lib/Sanitizer'
 let websites: string[] = [];
 process.argv.forEach((arg, index) => {
     if (index <= 1) return;
-
-    websites.push(arg);
+    if (Strategies.hasOwnProperty(arg)) {
+      websites.push(arg);
+    }
 })
 
 type StrategyKey = keyof typeof Strategies;
@@ -39,7 +40,6 @@ const main = async  () => {
         }
 
         let links2Crawl = await crawler.getLinksToCrawl();
-        console.log(links2Crawl);
         console.log(links2Crawl.length, " links scraped and filtered");
 
         for (const link of links2Crawl) {
