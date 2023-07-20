@@ -6,9 +6,9 @@ class CNN extends CrawlingStrategy {
     public name = 'CNN';
     public pagesToCrawl = [
         '/world/europe',
-        // '/world/asia',
-        // '/world/middle-east',
-        // '/world/africa'
+        '/world/asia',
+        '/world/middle-east',
+        '/world/africa'
     ];
 
     public contentSelectors = {
