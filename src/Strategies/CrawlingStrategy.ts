@@ -32,6 +32,7 @@ abstract class CrawlingStrategy {
     abstract contentSelectors: ContentSelectors;
 
     public onlyFirst: string[];
+		public acceptCookieButton: string;
 
     getUrl(): string {
         return this.url;

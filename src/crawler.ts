@@ -19,90 +19,81 @@ export default class Crawler {
      * and get all links from them
      */
     public async getLinksToCrawl(): Promise<string[]> {
-        let links: string[] = [];
+			let links: string[] = [];
 
-        for (const url of this.strategy.getPagesToCrawl()) {
+			for (const url of this.strategy.getPagesToCrawl()) {
+				console.log(`Fetch links from ${url}`);
 
-            console.log(`Fetch links from ${url}`);
+				// Open URL
+				await this.puppet.goto(url, {
+						waitUntil: 'networkidle2'
+				});
 
-            // Open URL
-            await this.puppet.goto(url, {
-                waitUntil: 'networkidle2'
-            });
+				if(this.strategy.acceptCookieButton && await this.puppet.$(this.strategy.acceptCookieButton))
+					await this.puppet.click(this.strategy.acceptCookieButton)
 
-            // Get me the <a> tags
-            const anchors = await this.puppet.$$('a[href]');
+				// Get me the <a> tags
+				const anchors = await this.puppet.$$('a[href]');
 
+				// loop through the anchors and get the href attribute
+				for (let i = 0; i < anchors.length; i++) {
+					const linkHandle = anchors[i];
+					const href = await this.puppet.evaluate(
+							linkElem => linkElem.getAttribute('href'),
+							linkHandle
+					);
 
-            // loop through the anchors and get the href attribute
-            for (let i = 0; i < anchors.length; i++) {
-                const linkHandle = anchors[i];
+					if (href)
+						links.push(href);
+				}
 
-                const href = await this.puppet.evaluate(
-                    linkElem => linkElem.getAttribute('href'),
-                    linkHandle
-                );
+				// Wait some time before doing the next request
+				await this.sleep(2500);
+			}
+			console.log('Links fetched before filtering:', links.length);
 
-                if (href) {
-                    links.push(href);
-                }
-
-            }
-
-            // Wait some time before doing the next request
-            await this.sleep(2500);
-        }
-        console.log('Links fetched before filtering:', links.length);
-
-        return [...new Set(this.strategy.filterLinks(links))];
+    	return [...new Set(this.strategy.filterLinks(links))];
     }
 
     public async scrapeArticle(url:string): Promise<ContentSelectors> {
+			let data: ContentSelectors = {};
+			type selectorKey = keyof typeof this.strategy.contentSelectors;
 
-        let data: ContentSelectors = {};
+			for (const contentType of Object.keys(this.strategy.contentSelectors)) {
+				let selector = this.strategy.contentSelectors[contentType as selectorKey];
 
-        type selectorKey = keyof typeof this.strategy.contentSelectors;
+				if (!selector || !selector.length)
+					continue;
 
-        for (const contentType of Object.keys(this.strategy.contentSelectors)) {
-            let selector = this.strategy.contentSelectors[contentType as selectorKey];
+				await this.puppet.goto(url, {
+						waitUntil: 'networkidle2'
+				});
 
-            if (!selector || !selector.length) {
-                continue;
-            }
+				const onlyFirst = this.strategy.onlyFirst ? this.strategy.onlyFirst.includes(contentType) : false;
+				const elementHandle = await this.puppet.$$(selector);
+				if (!elementHandle)
+					continue;
 
-            await this.puppet.goto(url, {
-                waitUntil: 'networkidle2'
-            });
+				let content = '';
+				for (const el of elementHandle) {
+					content += contentType != 'image'
+						? await el.evaluate(node => node.textContent)
+						: await el.evaluate(node => node.getAttribute('src'));;
 
-            const onlyFirst = this.strategy.onlyFirst.includes(contentType);
-            const elementHandle = await this.puppet.$$(selector);
-            if (!elementHandle) {
-                continue;
-            }
+					if (onlyFirst)
+						break;
+				}
 
-            let content = '';
-            for (const el of elementHandle) {
+				if (!content) continue;
+				data[contentType] = content;
+			}
 
-                content += contentType != 'image' 
-                    ? await el.evaluate(node => node.textContent)
-                    : await el.evaluate(node => node.getAttribute('src'));;
-
-                if (onlyFirst) {
-                    break;
-                }
-            }
-
-            if (!content) continue;
-
-            data[contentType] = content;
-        }
-
-        return data;
+			return data;
     }
 
 
     public async sleep(ms:number) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+      return new Promise(resolve => setTimeout(resolve, ms));
     }
 
 }
