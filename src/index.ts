@@ -22,8 +22,8 @@ const main = async  () => {
     const crawler = new Crawler(
         await puppet()
     );
-    for (const site of websites) {
 
+    for (const site of websites) {
         if (!Strategies.hasOwnProperty(site)) continue;
 
         console.log("Scraping news for:", site);
@@ -38,6 +38,7 @@ const main = async  () => {
           console.log(`Site with name ${crawler.strategy.name} not registered in database. Skip crawling`);
           continue;
         }
+
 
         let links2Crawl = await crawler.getLinksToCrawl();
         console.log(links2Crawl.length, " links scraped and filtered");
@@ -55,9 +56,8 @@ const main = async  () => {
 
             let data = await crawler.scrapeArticle(fullLinkUrl);
 
-            if (typeof (crawler.strategy as any).sanitizeDate === 'function') {
+            if (typeof (crawler.strategy as any).sanitizeDate === 'function')
               data.date = (crawler.strategy as any).sanitizeDate(data.date);
-            }
 
             if (!data.date || isNaN(Date.parse(data.date))) {
               console.log(`Invalid date scraped: ${data.date}`);
@@ -69,17 +69,18 @@ const main = async  () => {
               continue;
             }
 
-
             let article = new Article();
             article.url = fullLinkUrl;
             article.title = Sanitizer.sanitizeTitle(data.title);
             article.date  = Sanitizer.formatDateString(data.date);
-            article.category = data.category;
+            article.category = data.category ? Sanitizer.sanitizeCategory(data.category) : null;
+						article.text = data.text;
             article.site_id  = siteModel.site_id;
 
-            if (data.text) {
+            if (data.text)
               article.text =  Sanitizer.sanitizeText(data.text);
-            }
+
+						console.log('Scraped: ', data);
 
             await article.save();
 
