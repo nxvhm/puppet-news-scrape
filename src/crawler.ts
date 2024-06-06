@@ -59,15 +59,18 @@ export default class Crawler {
 			let data: ContentSelectors = {};
 			type selectorKey = keyof typeof this.strategy.contentSelectors;
 
+			await this.puppet.goto(url, {
+				waitUntil: 'networkidle2'
+			});
+
 			for (const contentType of Object.keys(this.strategy.contentSelectors)) {
 				let selector = this.strategy.contentSelectors[contentType as selectorKey];
 
 				if (!selector || !selector.length)
 					continue;
 
-				await this.puppet.goto(url, {
-						waitUntil: 'networkidle2'
-				});
+				if(this.strategy.acceptCookieButton && await this.puppet.$(this.strategy.acceptCookieButton))
+					await this.puppet.click(this.strategy.acceptCookieButton)
 
 				const onlyFirst = this.strategy.onlyFirst ? this.strategy.onlyFirst.includes(contentType) : false;
 				const elementHandle = await this.puppet.$$(selector);
@@ -84,7 +87,9 @@ export default class Crawler {
 						break;
 				}
 
-				if (!content) continue;
+				if (!content)
+					continue;
+
 				data[contentType] = content;
 			}
 

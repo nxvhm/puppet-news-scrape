@@ -29,7 +29,7 @@ export default class Article extends BaseEntity {
     is_analysed: boolean
 
     @Column('varchar')
-    category: string
+    category: string|null
 
     static exists(url: string) {
       return this.createQueryBuilder("news")
@@ -45,7 +45,7 @@ export default class Article extends BaseEntity {
 
       https.get(url, response => {
         response.pipe(file);
-      
+
         file.on('finish', () => {
           file.close();
           console.log(`Image downloaded as ${imgName}`);
