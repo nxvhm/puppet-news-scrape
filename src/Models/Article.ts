@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { Entity, BaseEntity, Column, PrimaryGeneratedColumn } from "typeorm"
 import * as https from "https"
 import * as fs from "fs"
@@ -38,6 +39,10 @@ export default class Article extends BaseEntity {
     }
 
     static async saveImageFromUrl(url: string, articleId: number) {
+			const saveEnabled = Boolean(Number(process.env.SAVE_IMAGES));
+			if(!saveEnabled)
+				return;
+
       const imgName = String(articleId)+'.jpg',
             path = process.env.IMAGE_PATH,
             fullPath = path+'/'+imgName,
