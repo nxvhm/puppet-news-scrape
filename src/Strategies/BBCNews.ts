@@ -16,7 +16,8 @@ class BBCNews extends CrawlingStrategy {
 			description: '[data-component="text-block"] > p',
 			date: 'time',
 			author: '[data-testid="byline-name"]',
-			text: '[data-component="text-block"]'
+			text: '[data-component="text-block"]',
+			image: '[data-component="image-block"] img'
     }
 
     public onlyFirst = [
@@ -37,7 +38,6 @@ class BBCNews extends CrawlingStrategy {
 					return false;
 
 				const linkParts = link.split('/');
-				console.log(link, linkParts);
 				return linkParts.filter(part => part.length > 0).length >= 3 && linkParts.includes('articles')
 			})
     }
