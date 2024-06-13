@@ -1,5 +1,6 @@
 import CrawlingStrategy, { ContentSelectors } from "./Strategies/CrawlingStrategy";
 import { Page } from "puppeteer";
+import availableStrategies from "./Strategies";
 
 export default class Crawler {
 
@@ -81,7 +82,7 @@ export default class Crawler {
 				for (const el of elementHandle) {
 					content += contentType != 'image'
 						? await el.evaluate(node => node.textContent)
-						: await el.evaluate(node => node.getAttribute('src'));;
+						: await el.evaluate(node => node.getAttribute('src'));
 
 					if (onlyFirst)
 						break;
@@ -100,5 +101,40 @@ export default class Crawler {
     public async sleep(ms:number) {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
+
+		static findStrategyByUrl(url: string) {
+			type StrategyKey = keyof typeof availableStrategies;
+			let strategy: CrawlingStrategy[] = [];
+			for (const strategyKey of Object.keys(availableStrategies)) {
+				const strategyInstance = new availableStrategies[strategyKey as StrategyKey];
+				if (url.includes(strategyInstance.url)) {
+					strategy.push(strategyInstance);
+					break;
+				}
+			}
+			return  strategy.pop();
+		}
+
+		public async scrapeImage(url: string): Promise<string|undefined> {
+			return new Promise(async(resolve) => {
+				await this.puppet.goto(url, {
+					waitUntil: 'networkidle2'
+				});
+
+				const imageSelector = this.strategy.contentSelectors["image"];
+				const elementHandle = await this.puppet.$$(imageSelector);
+				if (!elementHandle)
+					resolve(undefined)
+
+				let content = '';
+				for (const el of elementHandle) {
+					content = String(await el.evaluate(node => node.getAttribute('src')));
+					if(content?.length)
+						break;
+				}
+
+				resolve(content?.length ? content : undefined);
+			})
+		}
 
 }
