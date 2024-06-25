@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "transpile": "cp ./src/.env ./dist/.env && npx tsc --watch"
+    "dev": "cp ./src/.env ./dist/.env && npx tsc --watch",
+		"build": "cp ./src/.env ./dist/.env && npx tsc"
   },
   "author": "",
   "license": "ISC",
