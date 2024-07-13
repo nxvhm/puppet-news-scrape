@@ -80,9 +80,14 @@ export default class Crawler {
 
 				let content = '';
 				for (const el of elementHandle) {
-					content += contentType != 'image'
-						? await el.evaluate(node => node.textContent)
-						: await el.evaluate(node => node.getAttribute('src'));
+
+					if (contentType != 'image') {
+						content += await el.evaluate(node => node.textContent);
+					} else {
+						content += typeof (this.strategy as any).scrapeImage === 'function'
+							? await el.evaluate((this.strategy as any).scrapeImage)
+							: await el.evaluate(node => node.getAttribute('src'));
+					}
 
 					if (onlyFirst)
 						break;
@@ -128,7 +133,10 @@ export default class Crawler {
 
 				let content = '';
 				for (const el of elementHandle) {
-					content = String(await el.evaluate(node => node.getAttribute('src')));
+					content = typeof (this.strategy as any).scrapeImage === 'function'
+						? String(await el.evaluate((this.strategy as any).scrapeImage))
+						: String(await el.evaluate(node => node.getAttribute('src')))
+
 					if(content?.length)
 						break;
 				}

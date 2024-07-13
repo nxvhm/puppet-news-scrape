@@ -25,7 +25,6 @@ const main = async () => {
 		process.exit();
 	}
 
-
 	const crawler = new Crawler(await puppet());
 	crawler.setStrategy(strategy);
 	const imageUrl = await crawler.scrapeImage(url);
