@@ -24,73 +24,71 @@ const main = async  () => {
     );
 
     for (const site of websites) {
-        if (!Strategies.hasOwnProperty(site)) continue;
+			if (!Strategies.hasOwnProperty(site)) continue;
 
-        console.log("Scraping news for:", site);
-        const strategy = new Strategies[site as StrategyKey];
-        crawler.setStrategy(strategy);
+			console.log("Scraping news for:", site);
+			const strategy = new Strategies[site as StrategyKey];
+			crawler.setStrategy(strategy);
 
-        const siteModel = await Site.findOneBy({
-          name: crawler.strategy.name
-        })
+			const siteModel = await Site.findOneBy({
+				name: crawler.strategy.name
+			})
 
-        if (!siteModel) {
-          console.log(`Site with name ${crawler.strategy.name} not registered in database. Skip crawling`);
-          continue;
-        }
+			if (!siteModel) {
+				console.log(`Site with name ${crawler.strategy.name} not registered in database. Skip crawling`);
+				continue;
+			}
 
+			let links2Crawl = await crawler.getLinksToCrawl();
+			console.log(`${links2Crawl.length} links scraped and filtered`);
 
-        let links2Crawl = await crawler.getLinksToCrawl();
-        console.log(links2Crawl.length, " links scraped and filtered");
+			for (const link of links2Crawl) {
+				const fullLinkUrl = crawler.strategy.getFullUrl(link),
+							exists = await Article.exists(fullLinkUrl);
 
-        for (const link of links2Crawl) {
-            const fullLinkUrl = crawler.strategy.getFullUrl(link),
-                  exists = await Article.exists(fullLinkUrl);
+				if (exists) {
+					console.log(`Article with url ${fullLinkUrl} already scraped`);
+					continue;
+				}
 
-            if (exists) {
-              console.log(`Article with url ${fullLinkUrl} already scraped`);
-              continue;
-            }
+				console.log(`Scrape ${fullLinkUrl}`);
 
-            console.log(`Scrape ${fullLinkUrl}`);
+				let data = await crawler.scrapeArticle(fullLinkUrl);
 
-            let data = await crawler.scrapeArticle(fullLinkUrl);
+				if (typeof (crawler.strategy as any).sanitizeDate === 'function')
+					data.date = (crawler.strategy as any).sanitizeDate(data.date);
 
-            if (typeof (crawler.strategy as any).sanitizeDate === 'function')
-              data.date = (crawler.strategy as any).sanitizeDate(data.date);
+				if (!data.date || isNaN(Date.parse(data.date))) {
+					console.log(`Invalid date scraped: ${data.date}`);
+					continue;
+				}
 
-            if (!data.date || isNaN(Date.parse(data.date))) {
-              console.log(`Invalid date scraped: ${data.date}`);
-              continue;
-            }
+				if (!data.title) {
+					console.log(`No title scraped`);
+					continue;
+				}
 
-            if (!data.title) {
-              console.log(`No title scraped`);
-              continue;
-            }
+				let article = new Article();
+				article.url = fullLinkUrl;
+				article.title = Sanitizer.sanitizeTitle(data.title);
+				article.date  = Sanitizer.formatDateString(data.date);
+				article.category = data.category ? Sanitizer.sanitizeCategory(data.category) : null;
+				article.text = data.text;
+				article.site_id  = siteModel.site_id;
 
-            let article = new Article();
-            article.url = fullLinkUrl;
-            article.title = Sanitizer.sanitizeTitle(data.title);
-            article.date  = Sanitizer.formatDateString(data.date);
-            article.category = data.category ? Sanitizer.sanitizeCategory(data.category) : null;
-						article.text = data.text;
-            article.site_id  = siteModel.site_id;
+				if (data.text)
+					article.text =  Sanitizer.sanitizeText(data.text);
 
-            if (data.text)
-              article.text =  Sanitizer.sanitizeText(data.text);
+				console.log('Scraped: ', data);
 
-						console.log('Scraped: ', data);
+				await article.save();
 
-            await article.save();
+				if (data.image && data.image.length) {
+					Article.saveImageFromUrl(data.image, article.id);
+				}
 
-            if (data.image && data.image.length) {
-              Article.saveImageFromUrl(data.image, article.id);
-            }
-
-            console.log(`Article saved: ${article.title} [${article.date}] ID: ${article.id}`);
-
-        }
+				console.log(`Article saved: ${article.title} [${article.date}] ID: ${article.id}`);
+			}
     }
 
     process.exit();
